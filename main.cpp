@@ -108,10 +108,11 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, 6 * points.size() * sizeof(float), points.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)offsetof(VertexInfo, coords)); //offsetof obtiene a partir de que byte dentro del struct VertexInfo la variable que se le pasa como parametro
+    //offsetof obtiene a partir de que byte empieza dentro del struct VertexInfo la variable que se le pasa como parametro
+    //debido al struct padding que es confuso como se hace, mejor no calculamos este valor a mano xd
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)offsetof(VertexInfo, coords));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)offsetof(VertexInfo, color)); //debido al struct padding que es confuso como se hace, mejor no calculamos este valor a mano xd
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)offsetof(VertexInfo, color)); 
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
