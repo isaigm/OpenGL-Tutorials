@@ -5,7 +5,6 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
-
 struct VertexInfo
 {
     sf::Vector3f coords;
@@ -39,27 +38,26 @@ void getCompilationErrors(GLuint shader)
     {
         glGetShaderInfoLog(shader, 512, NULL, log);
         std::cout << log << std::endl;
+        exit(1);
     }
 }
-void genCircle(std::vector<VertexInfo> &points)
+void genMandelbrot(std::vector<VertexInfo> &points, int npoints)
 {
-    float r = 0.5f;
-    for (float angle = 0; angle <= 2 * M_PI; angle += 0.5f)
+    float delta = 2.0f / npoints;
+    for(float y = -1; y <= 1; y += delta)
     {
-
-        float x = r * cos(angle);
-        float y = r * sin(angle);
-        VertexInfo vert;
-        vert.coords = {x, y, 0.0f};
-        vert.color = {rand() % 255 / 255.0f, rand() % 255 / 255.0f, rand() % 255 / 255.0f};
-
-        points.push_back(vert);
+        for(float x = -1; x <= 1; x += delta)
+        {
+            VertexInfo vert;
+            vert.coords = {x, y, 0.0f};
+            vert.color = {0.0f, 0.0f, 0.0f};
+            points.push_back(vert);
+        }
     }
 }
-
 int main()
 {
-    srand(time(nullptr));
+
     sf::ContextSettings ctx;
     ctx.depthBits = 0;
     ctx.stencilBits = 0;
@@ -67,10 +65,9 @@ int main()
     ctx.majorVersion = 4;
     ctx.minorVersion = 2;
 
-    sf::Window window(sf::VideoMode(800, 600), "OpenGL", sf::Style::Default, ctx);
+    sf::Window window(sf::VideoMode(600, 600), "OpenGL", sf::Style::Default, ctx);
     window.setVerticalSyncEnabled(true);
     glewInit();
-
     auto vertexShaderSource = loadShader("vertex_shader.glsl");
     const char *vShaderSrc = vertexShaderSource.c_str();
     auto vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -100,7 +97,7 @@ int main()
     };
     std::vector<VertexInfo> points;
 
-    genCircle(points);
+    genMandelbrot(points, 600);
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -108,11 +105,10 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, 6 * points.size() * sizeof(float), points.data(), GL_STATIC_DRAW);
-    //offsetof obtiene a partir de que byte empieza dentro del struct VertexInfo la variable que se le pasa como parametro
-    //debido al struct padding que es confuso como se hace, mejor no calculamos este valor a mano xd
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)offsetof(VertexInfo, coords));
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)offsetof(VertexInfo, coords)); // offsetof obtiene a partir de que byte dentro del struct VertexInfo la variable que se le pasa como parametro
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)offsetof(VertexInfo, color)); 
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)offsetof(VertexInfo, color)); // debido al struct padding que es confuso como se hace, mejor no calculamos este valor a mano xd
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -130,11 +126,13 @@ int main()
                 glViewport(0, 0, event.size.width, event.size.height);
             }
         }
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_LINE_STRIP, 0, points.size());
+        glDrawArrays(GL_POINTS, 0, points.size());
 
         window.display();
     }
