@@ -1,6 +1,9 @@
 #version 420 core
-layout (location = 0) in vec3 pos;
-layout (location = 1) in vec3 color;
+precision highp float;
+
+layout (location = 0) in vec2 pos;
+layout (location = 1) in vec2 realPos;
+layout (location = 2) in vec3 color;
 out vec3 fcolor;
 vec2 pow2(vec2 z)
 {
@@ -14,10 +17,10 @@ float len(vec2 z)
 
 void main()
 {
-    gl_Position = vec4(pos.x, pos.y, pos.z, 1.0);
+    gl_Position = vec4(realPos.x, realPos.y , 0, 1.0);
     fcolor = color;
     vec2 z = vec2(0, 0);
-    int max_iter = 150;
+    int max_iter = 500;
     int i;
     for(i = 0; i < max_iter; i++)
     {
